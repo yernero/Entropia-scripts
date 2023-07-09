@@ -1,4 +1,4 @@
-GPT 1.0.2
+GPT 1.0.3
 ---
 # Entropia Universe Profit Calculator
 
