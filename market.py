@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-import pickle
+import shelve
 from datetime import datetime
 
 class Application(tk.Frame):
@@ -17,7 +17,7 @@ class Application(tk.Frame):
         self.material_entry = tk.Entry(self)
         self.material_entry.grid(row=0, column=1)
 
-        self.markup_label = tk.Label(self, text="Lowest Markup:")
+        self.markup_label = tk.Label(self, text="Lowest Markup (%):")
         self.markup_label.grid(row=1, column=0)
         self.markup_entry = tk.Entry(self)
         self.markup_entry.grid(row=1, column=1)
@@ -36,11 +36,8 @@ class Application(tk.Frame):
         self.calculate_button.grid(row=4, column=0, columnspan=2)
 
     def load_data(self):
-        try:
-            with open('data.pkl', 'rb') as f:
-                self.data = pickle.load(f)
-        except FileNotFoundError:
-            self.data = []
+        with shelve.open('data') as db:
+            self.data = db.get('data', [])
 
     def calculate_quantity(self):
         material = self.material_entry.get()
@@ -50,16 +47,18 @@ class Application(tk.Frame):
         
         avg_material_price = total_value / amount
         target_price = avg_material_price * (1 + markup/100)
-        best_quantity_to_sell = total_value // target_price
-        
+
+        max_amount = total_value // avg_material_price
+        if max_amount > amount:
+            max_amount = amount
+
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.data.append((timestamp, material, markup, amount, total_value, max_amount))
 
-        self.data.append((timestamp, material, markup, amount, total_value, best_quantity_to_sell))
+        with shelve.open('data') as db:
+            db['data'] = self.data
 
-        with open('data.pkl', 'wb') as f:
-            pickle.dump(self.data, f)
-        
-        messagebox.showinfo("Result", f"The best quantity of {material} to sell, to stay under the lowest markup price, is: {best_quantity_to_sell}")
+        messagebox.showinfo("Result", f"The maximum quantity of {material} to sell, to stay under the lowest markup price, is: {max_amount}")
 
 root = tk.Tk()
 app = Application(master=root)
