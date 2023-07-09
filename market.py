@@ -48,7 +48,7 @@ class Application(tk.Frame):
         avg_material_price = total_value / amount
         target_price = avg_material_price * (1 + markup/100)
 
-        max_amount = total_value // avg_material_price
+        max_amount = total_value // target_price
         if max_amount > amount:
             max_amount = amount
 
@@ -58,7 +58,14 @@ class Application(tk.Frame):
         with shelve.open('data') as db:
             db['data'] = self.data
 
-        messagebox.showinfo("Result", f"The maximum quantity of {material} to sell, to stay under the lowest markup price, is: {max_amount}")
+        detailed_msg = f"Here are the calculations:\n"
+        detailed_msg += f"Average material price: {avg_material_price} PED\n"
+        detailed_msg += f"Target selling price under given markup: {target_price} PED\n"
+        detailed_msg += f"Maximum quantity to sell: {max_amount}\n"
+        detailed_msg += f"Please note that this is based on your average price, your markup and total value of materials in inventory.\n"
+        detailed_msg += f"Check in-game data for precise calculations."
+
+        messagebox.showinfo("Result", detailed_msg)
 
 root = tk.Tk()
 app = Application(master=root)
